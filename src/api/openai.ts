@@ -4,6 +4,8 @@ import { getCurrentModel } from "../environment/getCurrentModel"
 import fetch from "node-fetch"
 import { Chunk } from "../utils/chunking"
 
+const EMBEDDING_BATCH_SIZE = 100
+
 type Callbacks = {
   onData: (chunk: string) => void
   onError?: (error: Error) => void
@@ -244,11 +246,11 @@ export const embedChunk = async (chunk: Chunk) => {
 export const embedChunks = async (chunks: Chunk[]) => {
   const allTexts = chunks.map((chunk) => chunk.text)
   console.log(`Embedding chunks...`)
-  for (let i = 0; i < allTexts.length; i += 1000) {
-    console.log(`  ${i} - ${i + 1000} of ${allTexts.length}`)
-    const texts = allTexts.slice(i, i + 1000)
+  for (let i = 0; i < allTexts.length; i += EMBEDDING_BATCH_SIZE) {
+    console.log(`  ${i} - ${i + EMBEDDING_BATCH_SIZE} of ${allTexts.length}`)
+    const texts = allTexts.slice(i, i + EMBEDDING_BATCH_SIZE)
     const embeddings = await getEmbeddings(texts)
-    chunks.slice(i, i + 1000).forEach((chunk, j) => {
+    chunks.slice(i, i + EMBEDDING_BATCH_SIZE).forEach((chunk, j) => {
       chunk.embedding = embeddings[j]
     })
   }
